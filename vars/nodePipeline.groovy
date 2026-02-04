@@ -8,10 +8,6 @@ def call(Map config) {
             }
         }
 
-        environment {
-            IMAGE_NAME = config.imageName
-        }
-
         stages {
 
             stage('Checkout') {
@@ -34,7 +30,9 @@ def call(Map config) {
 
             stage('Docker Build') {
                 steps {
-                    sh "docker build -t $IMAGE_NAME:latest ."
+                    script {
+                        sh "docker build -t ${config.imageName}:latest ."
+                    }
                 }
             }
 
@@ -48,14 +46,15 @@ def call(Map config) {
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_PASS'
                     )]) {
-                        sh '''
-                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                        docker push $IMAGE_NAME:latest
-                        '''
+                        script {
+                            sh """
+                            echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+                            docker push ${config.imageName}:latest
+                            """
+                        }
                     }
                 }
             }
         }
     }
 }
-
