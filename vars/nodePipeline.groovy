@@ -22,11 +22,26 @@ def call(Map config) {
                 }
             }
 
-            stage('Test') {
-                steps {
-                    sh 'npm test'
+           stage('quality checks'){
+             parallel {
+                stage('unit test') {
+                    steps {
+                        sh 'npm test'
+                    }
                 }
-            }
+                stage('lint') {
+                    steps {
+                        sh 'npm install eslint || true'
+                        sh 'npx eslint . || true '
+                    }
+                }
+                stage('security scan') {
+                    steps {
+                        sh 'npm audit --audit-level=high || true'
+                    }
+                }
+             }
+           }
 
             stage('Docker Build') {
                 steps {
